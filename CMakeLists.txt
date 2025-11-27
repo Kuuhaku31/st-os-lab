@@ -40,3 +40,9 @@ target_link_libraries(producer PRIVATE pthread)
 target_link_libraries(consumer PRIVATE pthread)
 
 add_executable(library lab-06-RCULock/library.c)
+
+# 内核头文件
+include_directories(
+        /usr/src/linux-headers-6.8.0-88/include
+        /usr/src/linux-headers-6.8.0-88-generic/include
+)
