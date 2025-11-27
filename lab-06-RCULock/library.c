@@ -19,7 +19,7 @@
 #include <linux/delay.h>         // msleep
 #include <linux/random.h>        // get_random_bytes
 #include <linux/printk.h>        // pr_err, pr_info（有些系统不需要）
-
+#include <linux/sched.h>
 
 
 #define RCU_SYNC      0
@@ -28,7 +28,6 @@
 #define STUDENT_COUNT 10 // 学生线程的数量
 #define BOOK_COUNT    10 // 图书的数量
 #define INTERVAL      1000
-
 
 static struct task_struct* tsk_manager[MANAGER_COUNT];
 static struct task_struct* tsk_student[STUDENT_COUNT];
@@ -88,15 +87,16 @@ RCUInit()
 static int
 ThreadLabManager(void* data)
 {
-    struct task_struct* tsk = current; // 内核的一个全局变量，是当前线程的 task_struct 指针，本实验用这个指针来获取图书管理员线程的名称和pid，用于打印信息
+    // 内核的一个全局变量，是当前线程的 task_struct 指针
+    // 用这个指针来获取图书管理员线程的名称和 pid 用于打印信息
+    struct task_struct* tsk = current;
 
-    int i;
     pr_err("%s(%d) begins!!!\n", tsk->comm, tsk->pid);
     while(!kthread_should_stop())
     {
         // todo: add randomly, delete randomly
         pr_err("%s(%d) is going to print books!!!\n", tsk->comm, tsk->pid);
-        for(i = 0; i < BOOK_COUNT; i++)
+        for(int i = 0; i < BOOK_COUNT; i++)
             print_book(i);
         msleep(INTERVAL);
     }

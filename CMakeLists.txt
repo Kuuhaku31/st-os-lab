@@ -43,6 +43,8 @@ add_executable(library lab-06-RCULock/library.c)
 
 # 内核头文件
 include_directories(
-        /usr/src/linux-headers-6.8.0-88/include
-        /usr/src/linux-headers-6.8.0-88-generic/include
+        /usr/src/linux-headers-6.14.0-36-generic/include
+        /usr/src/linux-hwe-6.14-headers-6.14.0-36/include
+#        /usr/src/linux-headers-6.8.0-88/include
+#        /usr/src/linux-headers-6.8.0-88-generic/include
 )
