@@ -39,3 +39,4 @@ target_link_libraries(process_sync_sem PRIVATE pthread)
 target_link_libraries(producer PRIVATE pthread)
 target_link_libraries(consumer PRIVATE pthread)
 
+add_executable(library lab-06-RCULock/library.c)
