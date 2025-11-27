@@ -52,7 +52,7 @@ Mkfile.old
 dkms.conf
 
 # ignore
-./bin/
+/bin/
 
 # 忽略所有无扩展名的可执行文件
 *[!a-zA-Z0-9]*
