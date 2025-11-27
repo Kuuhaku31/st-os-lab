@@ -53,4 +53,6 @@ dkms.conf
 
 # ignore
 /.idea/
+/.vscode/
+/.ignore/
 /bin/
