@@ -1,0 +1,250 @@
+vi include/linux/poison.h  
+22  */
+ 23 #define LIST_POISON1  ((void *) 0x100 + POISON_POINTER_DELTA)
+ 24 #define LIST_POISON2  ((void *) 0x122 + POISON_POINTER_DELTA)
+
+
+vi include/linux/rculist.h
+
+197 static inline void list_replace_rcu(struct list_head *old,
+198                 struct list_head *new)
+199 {
+200     new->next = old->next;
+201     new->prev = old->prev;
+202     rcu_assign_pointer(list_next_rcu(new->prev), new);
+203     new->next->prev = new;
+204     old->prev = LIST_POISON2;
+205 }
+
+
+===2 managers 10 students===
+[  685.797041] lab-manager0(5385) begins!!!
+[  685.797075] lab-manager1(5386) begins!!!
+[  685.797154] student0(5387) begins!!!
+[  685.797158] student0(5387) is going to borrow book 0
+[  685.797159] borrow_book, old_b: 0xffff9d34e4b91000
+[  685.797165] borrow success 0
+[  685.797193] student1(5388) begins!!!
+[  685.797195] student1(5388) is going to borrow book 0
+[  685.797196] borrow failed 0, not available
+[  685.797226] student2(5389) begins!!!
+[  685.797227] student2(5389) is going to borrow book 0
+[  685.797229] borrow failed 0, not available
+[  685.797259] student3(5390) begins!!!
+[  685.797261] student3(5390) is going to borrow book 0
+[  685.797262] borrow failed 0, not available
+[  685.797292] student4(5391) begins!!!
+[  685.797294] student4(5391) is going to borrow book 0
+[  685.797296] borrow failed 0, not available
+[  685.797326] student5(5392) begins!!!
+[  685.797328] student5(5392) is going to borrow book 0
+[  685.797330] borrow failed 0, not available
+[  685.797358] student6(5393) begins!!!
+[  685.797360] student6(5393) is going to borrow book 0
+[  685.797362] borrow failed 0, not available
+[  685.797391] student7(5394) begins!!!
+[  685.797393] student7(5394) is going to borrow book 0
+[  685.797395] borrow failed 0, not available
+[  685.797424] student8(5395) begins!!!
+[  685.797426] student8(5395) is going to borrow book 0
+[  685.797427] borrow failed 0, not available
+[  685.797456] student9(5396) begins!!!
+[  685.797458] student9(5396) is going to borrow book 0
+[  685.797459] borrow failed 0, not available
+[  685.800996] lab-manager0(5385) is going to print books!!!
+[  685.804936] lab-manager1(5386) is going to print books!!!
+[  685.960243] callback free : ffff9d34e4b91000, preempt_count : 256
+[  686.804090] student8(5395) is going to return book 0
+[  686.804110] student9(5396) is going to return book 0
+[  686.804137] student7(5394) is going to return book 0
+[  686.804150] return_book, old_b: 0xffff9d34e4b913c0
+[  686.804168] student6(5393) is going to return book 0
+[  686.804170] return success 0
+[  686.804177] return failed 0, not available
+[  686.804191] student5(5392) is going to return book 0
+[  686.804196] return failed 0, not available
+[  686.804202] student4(5391) is going to return book 0
+[  686.804206] student3(5390) is going to return book 0
+[  686.804207] return failed 0, not available
+[  686.804211] return failed 0, not available
+[  686.804222] student1(5388) is going to return book 0
+[  686.804228] return failed 0, not available
+[  686.804232] student2(5389) is going to return book 0
+[  686.804238] return failed 0, not available
+[  686.804263] student0(5387) is going to return book 0
+[  686.804273] return failed 0, not available
+[  686.809124] return failed 0, not available
+[  686.814109] return failed 0, not available
+[  686.836044] lab-manager1(5386) is going to print books!!!
+[  686.849892] callback free : ffff9d34e4b913c0, preempt_count : 257
+[  686.964011] lab-manager0(5385) is going to print books!!!
+
+===都能借书成功，也就是都能操作old_b， 0xffff9d34c09eb480
+[  687.828160] student8(5395) is going to borrow book 0
+[  687.828172] student3(5390) is going to borrow book 0
+[  687.828188] student0(5387) is going to borrow book 0
+[  687.828187] student1(5388) is going to borrow book 0
+[  687.828184] borrow_book, old_b: 0xffff9d34c09eb480
+[  687.828200] borrow_book, old_b: 0xffff9d34c09eb480
+[  687.828200] borrow_book, old_b: 0xffff9d34c09eb480
+[  687.828216] borrow success 0
+
+
+[  687.828236] general protection fault, probably for non-canonical address 0xdead000000000122: 0000 [#1] PREEMPT SMP PTI
+[  687.828247] CPU: 3 PID: 5388 Comm: student1 Tainted: G           OE      6.6.4-kylin-edu #2
+===old_b，0xffff9d34c09eb480，被释放，entry->prev会变成LIST_POISON2;
+
+[  687.828258] student2(5389) is going to borrow book 0
+[  687.828260] Hardware name: LENOVO YangTianT4900v-00/, BIOS FCKT65AUS 01/12/2015
+[  687.828264] borrow failed 0, not available
+[  687.828265] RIP: 0010:kthread_student+0x17a/0x410 [kylin_rcu]
+[  687.828276] student4(5391) is going to borrow book 0
+[  687.828282] borrow failed 0, not available
+[  687.828291] student7(5394) is going to borrow book 0
+[  687.828289] Code: 89 88 88 00 00 00 49 8b 8c 24 90 00 00 00 48 8d 90 88 00 00 00 48 89 88 90 00 00 00 48 8b 88 90 00 00 00 48 c7 c7 40 35 1b c1 <48> 89 11 48 8b 80 88 00 00 00 48 89 50 08 4d 89 bc 24 90 00 00 00
+[  687.828296] borrow failed 0, not available
+[  687.828298] RSP: 0018:ffffbb27405afea0 EFLAGS: 00010246
+[  687.828309] RAX: ffff9d34e4b91000 RBX: ffff9d3404cacc80 RCX: dead000000000122
+[  687.828315] RDX: ffff9d34e4b91088 RSI: 0000000000000000 RDI: ffffffffc11b3540
+[  687.828321] RBP: ffffbb27405afee0 R08: 00000000000000c0 R09: 0000000000000000
+[  687.828327] R10: ffff9d34e4b91000 R11: 0000000091e68ad5 R12: ffff9d34c09eb480
+[  687.828328] student5(5392) is going to borrow book 0
+[  687.828334] borrow failed 0, not available
+[  687.828334] R13: 0000000000000000 R14: ffff9d3404cad7d0 R15: dead000000000122
+[  687.828341] FS:  0000000000000000(0000) GS:ffff9d3517b80000(0000) knlGS:0000000000000000
+[  687.828352] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  687.828358] student6(5393) is going to borrow book 0
+[  687.828359] CR2: 00007f365b1cd000 CR3: 000000007882c002 CR4: 00000000001706e0
+[  687.828364] borrow failed 0, not available
+[  687.828368] Call Trace:
+[  687.828373]  <TASK>
+[  687.828380]  ? show_regs+0x68/0x70
+[  687.828403]  ? __die_body+0x20/0x70
+[  687.828413]  ? die_addr+0x3e/0x60
+[  687.828423]  ? exc_general_protection+0x224/0x490
+[  687.828435]  ? asm_exc_general_protection+0x27/0x30
+[  687.828449]  ? kthread_student+0x17a/0x410 [kylin_rcu]
+[  687.828466]  ? __pfx_kthread_student+0x10/0x10 [kylin_rcu]
+[  687.828479]  kthread+0x108/0x140                                                                                                                 
+[  687.828490]  ? __pfx_kthread+0x10/0x10                                                                                                           
+[  687.828499]  ret_from_fork+0x3c/0x60                                                                                                             
+[  687.828509]  ? __pfx_kthread+0x10/0x10                                                                                                           
+[  687.828518]  ret_from_fork_asm+0x1b/0x30
+[  687.828532]  </TASK>
+[  687.828534] Modules linked in: kylin_rcu(OE) cfg80211 xt_u32 xt_tcpudp xt_TCPMSS xt_policy xt_owner xt_NFLOG xt_mark xt_IDLETIMER xt_connmark xt_CHECKSUM tcp_diag nfnetlink_log ipt_REJECT nf_reject_ipv4 bluetooth iptable_raw iptable_mangle ip6t_REJECT nf_reject_ipv6 o
+[  687.828670]  snd mei cec soundcore wmi mac_hid sch_fq_codel vmwgfx drm_ttm_helper ttm drm_kms_helper parport_pc ppdev lp parport drm ip_tables x_tables autofs4 hid_generic ahci i2c_i801 r8169 libahci usbhid i2c_smbus realtek lpc_ich hid [last unloaded: kylinfifo(OE)]
+[  687.828720] ---[ end trace 0000000000000000 ]---
+[  687.828724] RIP: 0010:kthread_student+0x17a/0x410 [kylin_rcu]
+[  687.828738] Code: 89 88 88 00 00 00 49 8b 8c 24 90 00 00 00 48 8d 90 88 00 00 00 48 89 88 90 00 00 00 48 8b 88 90 00 00 00 48 c7 c7 40 35 1b c1 <48> 89 11 48 8b 80 88 00 00 00 48 89 50 08 4d 89 bc 24 90 00 00 00
+[  687.828743] RSP: 0018:ffffbb27405afea0 EFLAGS: 00010246
+[  687.828748] RAX: ffff9d34e4b91000 RBX: ffff9d3404cacc80 RCX: dead000000000122
+[  687.828751] RDX: ffff9d34e4b91088 RSI: 0000000000000000 RDI: ffffffffc11b3540
+[  687.828754] RBP: ffffbb27405afee0 R08: 00000000000000c0 R09: 0000000000000000
+[  687.828757] R10: ffff9d34e4b91000 R11: 0000000091e68ad5 R12: ffff9d34c09eb480
+[  687.828760] R13: 0000000000000000 R14: ffff9d3404cad7d0 R15: dead000000000122
+[  687.828764] FS:  0000000000000000(0000) GS:ffff9d3517b80000(0000) knlGS:0000000000000000
+[  687.828768] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  687.828771] CR2: 00007f365b1cd000 CR3: 000000007882c002 CR4: 00000000001706e0
+[  687.828775] note: student1[5388] exited with preempt_count 1
+[  687.833182] borrow failed 0, not available
+[  687.864089] student9(5396) is going to borrow book 0
+[  687.924059] lab-manager1(5386) is going to print books!!!
+[  687.939539] borrow failed 0, not available
+[  687.988089] lab-manager0(5385) is going to print books!!!
+[  687.993652] print_book, id:0
+[  688.316276] print_book, id:0
+[  688.852101] student7(5394) is going to return book 0
+[  688.852107] student5(5392) is going to return book 0
+[  688.852119] return_book, old_b: 0xffff9d34183ad6c0
+[  688.852126] student6(5393) is going to return book 0
+[  688.852134] return_book, old_b: 0xffff9d34183ad6c0
+
+
+
+===1 manager, 2 students
+
+kylin-Lenovo login: [ 1614.844710] kylin_rcu_init
+[ 1614.847501] lab-manager0(4225) begins!!!
+[ 1614.847524] student0(4226) begins!!!
+[ 1614.848609] student1(4227) begins!!!
+[ 1614.848613] student1(4227) is going to borrow book 0
+[ 1614.848614] borrow_book,student1, old_b: 0xffff9eeadffbb600, new_b:0xffff9eead563e3c0
+[ 1614.848619] borrow success 0
+[ 1614.851450] lab-manager0(4225) is going to print books!!!
+[ 1614.855020] student0(4226) is going to borrow book 0
+[ 1614.855022] borrow failed 0, not available
+[ 1614.905685] callback free : ffff9eeadffbb600, preempt_count : 257
+
+
+[ 1615.869786] student0(4226) is going to return book 0
+[ 1615.869786] student1(4227) is going to return book 0
+[ 1615.869802] return_book,student0, old_b: 0xffff9eead563e3c0, new_b:0xffff9eea1d9ec840
+[ 1615.874800] return_book,student1, old_b: 0xffff9eead563e3c0, new_b:0xffff9eea075e8180
+[ 1615.879785] return success 0
+[ 1615.898363] general protection fault, probably for non-canonical address 0xdead000000000122: 0000 [#1] PREEMPT SMP PTI
+[ 1615.909054] CPU: 3 PID: 4227 Comm: student1 Tainted: G           OE      6.6.4-kylin-edu #2
+
+
+[ 1615.917409] Hardware name: LENOVO YangTianT4900v-00/, BIOS FCKT65AUS 01/12/2015
+[ 1615.921735] lab-manager0(4225) is going to print books!!!
+[ 1615.924715] RIP: 0010:kthread_student+0x2d4/0x400 [kylin_rcu]
+[ 1615.930140] print_book, id:0
+[ 1615.935861] Code: 49 8d 86 88 00 00 00 49 89 96 88 00 00 00 49 8b 97 90 00 00 00 49 89 96 90 00 00 00 49 8b 96 90 00 00 00 48 c7 c7 40 a5 ff c0 <48> 89 02 49 8b 96 88 00 00 00 48 89 42 08 48 b8 22 01 00 00 00 00
+[ 1615.935869] RSP: 0018:ffffbad78389be98 EFLAGS: 00010246
+[ 1615.935878] RAX: ffff9eea075e8208 RBX: ffff9eeacc0bb300 RCX: 0000000000000000
+[ 1615.935884] RDX: dead000000000122 RSI: ffffffffc0ff8503 RDI: ffffffffc0ffa540
+[ 1615.935889] RBP: ffffbad78389bee0 R08: 0000000000000000 R09: ffffbad78389bd18
+[ 1615.935895] R10: 0000000000000001 R11: 0000000000000001 R12: 0000000000000000
+[ 1615.935899] R13: ffff9eeacc0bbe50 R14: ffff9eea075e8180 R15: ffff9eead563e3c0
+[ 1615.935905] FS:  0000000000000000(0000) GS:ffff9eeb17b80000(0000) knlGS:0000000000000000
+[ 1616.006521] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[ 1616.012274] CR2: 00007efd4bf9c650 CR3: 00000001caa2c006 CR4: 00000000001706e0
+[ 1616.019406] Call Trace:
+[ 1616.021862]  <TASK>
+[ 1616.023968]  ? show_regs+0x68/0x70
+[ 1616.027387]  ? __die_body+0x20/0x70
+[ 1616.030893]  ? die_addr+0x3e/0x60
+[ 1616.034230]  ? exc_general_protection+0x224/0x490
+[ 1616.038947]  ? asm_exc_general_protection+0x27/0x30
+[ 1616.043842]  ? kthread_student+0x2a3/0x400 [kylin_rcu]
+[ 1616.048995]  ? kthread_student+0x2d4/0x400 [kylin_rcu]
+[ 1616.054144]  ? kthread_student+0x2a3/0x400 [kylin_rcu]
+[ 1616.059291]  ? __pfx_kthread_student+0x10/0x10 [kylin_rcu]
+[ 1616.064787]  kthread+0x108/0x140
+[ 1616.068028]  ? __pfx_kthread+0x10/0x10
+[ 1616.071790]  ret_from_fork+0x3c/0x60
+[ 1616.075374]  ? __pfx_kthread+0x10/0x10
+[ 1616.079137]  ret_from_fork_asm+0x1b/0x30
+
+
+====2 manager , 10 students, 10 books
+
+[  413.337853] callback free : ffff91ec4703ec00, preempt_count : 257
+[  414.129943] student3(4358) is going to return book 8
+[  414.129945] student6(4361) is going to borrow book 6
+[  414.129946] student9(4364) is going to borrow book 7
+[  414.129946] student5(4360) is going to borrow book 7
+[  414.129962] borrow_book,student6, old_b: 0xffff91ec44408480, new_b:0xffff91ed10ae6e40
+[  414.129961] borrow_book,student5, old_b: 0xffff91ed2516b000, new_b:0xffff91ed2516bd80
+[  414.129961] borrow_book,student9, old_b: 0xffff91ed2516b000, new_b:0xffff91ec44408cc0
+[  414.129982] borrow success 7
+[  414.130002] general protection fault, probably for non-canonical address 0xdead000000000122: 0000 [#1] PREEMPT SMP PTI
+[  414.130014] CPU: 2 PID: 4364 Comm: student9 Tainted: G           OE      6.6.4-kylin-edu #2
+[  414.130025] Hardware name: LENOVO YangTianT4900v-00/, BIOS FCKT65AUS 01/12/2015
+[  414.130029] RIP: 0010:kthread_student+0x193/0x3f0 [kylin_rcu]
+[  414.130052] Code: 49 8d 87 88 00 00 00 49 89 97 88 00 00 00 49 8b 96 90 00 00 00 49 89 97 90 00 00 00 49 8b 97 90 00 00 00 48 c7 c7 40 f5 05 c1 <48> 89 02 49 8b 97 88 00 00 00 48 89 42 08 48 b8 22 01 00 00 00 00
+[  414.130058] RSP: 0018:ffffa9dd4079be98 EFLAGS: 00010246
+[  414.130064] RAX: ffff91ec44408d48 RBX: ffff91ed10899980 RCX: 0000000000000000
+[  414.130068] RDX: dead000000000122 RSI: ffffffffc105d3c2 RDI: ffffffffc105f540
+[  414.130071] RBP: ffffa9dd4079bee0 R08: 0000000000000049 R09: 0000000000000012
+[  414.130074] R10: ffffffff8d0764cc R11: 000000008d0764b8 R12: 0000000000000007
+[  414.130077] R13: ffff91ed1089a4d0 R14: ffff91ed2516b000 R15: ffff91ec44408cc0
+[  414.130081] FS:  0000000000000000(0000) GS:ffff91ed5fb00000(0000) knlGS:0000000000000000
+[  414.130085] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  414.130089] CR2: 00007f02d571eea0 CR3: 0000000218e2c005 CR4: 00000000001706e0
+[  414.130093] Call Trace:
+[  414.130096]  <TASK>
+
+
+
+
