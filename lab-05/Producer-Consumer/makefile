@@ -10,9 +10,9 @@ consumer.out: consumer.o util.o
 
 # 二进制文件
 producer.o: util.h producer.c
-	gcc -c producer.out.c
+	gcc -c producer.c
 consumer.o: util.h consumer.c
-	gcc -c consumer.out.c
+	gcc -c consumer.c
 util.o: util.h util.c
 	gcc -c util.c
 
