@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 4.1)
 project(st_os_lab C)
 
-# set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
+set(CMAKE_C_STANDARD 11)
 
-add_executable(st_os_lab
-        lab-06-RCULock/library.c)
+add_executable(st_os_lab lab-06-RCULock/library.c)
+add_executable(lab07 lab-07-scheduler/main.c)
+
 
 include_directories(
         #/home/kuuhaku-ubez/def/linux-source-6.8.0/include/
