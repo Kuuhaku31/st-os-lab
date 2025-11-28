@@ -10,7 +10,8 @@
 #define NAME_SIZE   16 // 单次可输入的最大字符数（外加\0）
 
 // #define SHARE_PATH           "/home/lyz/def/shm/"
-#define SHARE_PATH           "/mnt/d/WSL/shm/"
+// #define SHARE_PATH           "/mnt/d/WSL/shm/"
+#define SHARE_PATH           "/mnt/hgfs/.share/shm/"
 #define SEMAPHORE_FILE       "st-sem"
 #define DATA_FILE            "st-data"
 #define SHARE_SEMAPHORE_FILE SHARE_PATH SEMAPHORE_FILE
