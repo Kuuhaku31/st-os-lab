@@ -55,4 +55,4 @@ dkms.conf
 /.idea/
 /.vscode/
 /.ignore/
-/bin/
+/.bin/
