@@ -1,26 +1,30 @@
 // Library
 
-
+#include <linux/module.h>   // 必须包含
+#include <linux/kernel.h>
+#include <linux/init.h>
+#include <linux/list.h>
+#include <linux/rcupdate.h>  // RCU 宏和 API
+#include <linux/slab.h>      // kmalloc/kfree
 #include <stdarg.h>
 #include <stdio.h>
 #include <fcntl.h>    // open、O_RDONLY 等
 #include <unistd.h>   // close 等
 #include <string.h>
-#include <semaphore.h>
-#include <linux/slab.h>
-#include <linux/kernel.h>        // printk, pr_err, container_of
-#include <linux/module.h>        // module_init, module_exit, THIS_MODULE
-#include <linux/init.h>          // __init, __exit
-#include <linux/list.h>          // list_head, list_for_each_entry, list_replace_rcu
-#include <linux/rcupdate.h>      // rcu_read_lock, synchronize_rcu, call_rcu
+#include <linux/types.h>
 #include <linux/spinlock.h>      // spinlock_t, spin_lock(), spin_unlock()
 #include <linux/kthread.h>       // kthread_run, kthread_should_stop
 #include <linux/sched.h>         // current, task_struct
-#include <linux/delay.h>         // msleep
+#include <linux/delay.h>         // m sleep
 #include <linux/random.h>        // get_random_bytes
 #include <linux/printk.h>        // pr_err, pr_info（有些系统不需要）
-#include <linux/sched.h>
+#include <linux/cache.h>
+#include <linux/gfp.h>
 
+#ifndef list_for_each_entry_rcu
+# warning "list_for_each_entry_rcu is not defined"
+# define list_for_each_entry_rcu(a, b, c) while(1)
+#endif
 
 #define RCU_SYNC      0
 #define RCU_ASYNC     1
@@ -52,6 +56,10 @@ struct book
     struct list_head node;
     struct rcu_head rcu;
 };
+
+spinlock_t books_lock; // 自旋锁
+struct book books[BOOK_COUNT];
+void* node;
 
 static int
 RCUInit()
